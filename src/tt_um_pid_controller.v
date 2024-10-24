@@ -45,6 +45,7 @@ parameter reg [7:0] Ki = 8'h02; // Example integral gain
 parameter reg [7:0] Kd = 8'h01; // Example derivative gain
 
 // Internal signals
+reg [7:0] error = 8'h00;
 reg [7:0] prev_error = 8'h00;
 reg [7:0] integral = 8'h00;
 reg [7:0] derivative = 8'h00;
