@@ -54,7 +54,7 @@ always @(posedge clk or negedge rst_n) begin
     prev_error <= 8'h00;
     integral <= 8'h00;
     derivative <= 8'h00;
-    outputs <= 8'h00;
+    control_signal <= 8'h00;
   end
   else begin
     // PID Calculation
