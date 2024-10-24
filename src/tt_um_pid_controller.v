@@ -24,8 +24,8 @@ wire _unused = &{ena, 1'b0};
 pid_controller pid(ui_in[7:0], uio_in[7:0], clk, rst_n);
 
 endmodule
-  
-module pid_controller(input setpoint, input feedback, input  clk, input  rst_n);
+
+module pid_controller(setpoint, feedback, clk, rst_n);
 
 input [7:0] setpoint;
 input [7:0] feedback;
