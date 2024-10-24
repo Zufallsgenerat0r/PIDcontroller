@@ -35,10 +35,8 @@ module pid_controller(
   input wire [7:0] feedback,
   input wire clk,
   input wire rst_n,
-  output wire control_signal
+  output reg [7:0] control_signal
 );
-
-output reg [7:0] control_signal;
 
 // Hardcoded PID coefficients
 parameter reg [7:0] Kp = 8'h10; // Example proportional gain
