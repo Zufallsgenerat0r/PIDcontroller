@@ -21,7 +21,12 @@ assign uio_oe = 8'b11111111; //assign bidrectional as outputs.
  // List all unused inputs to prevent warnings
 wire _unused = &{ena, 1'b0};
 
-pid_controller pid(ui_in[7:0], uio_in[7:0], clk, rst_n);
+pid_controller pid(
+  .ui_in[7:0](setpoint), 
+  .uio_in[7:0](feedback), 
+  .clk(clk), 
+  .rst_n(rst_n)
+);
 
 endmodule
 
