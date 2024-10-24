@@ -22,19 +22,21 @@ assign uio_oe = 8'b11111111; //assign bidrectional as outputs.
 wire _unused = &{ena, 1'b0};
 
 pid_controller pid(
-  .ui_in[7:0](setpoint), 
-  .uio_in[7:0](feedback), 
-  .clk(clk), 
-  .rst_n(rst_n)
+  .setpoint (ui_in[7:0]), 
+  .feedback (uio_in[7:0]), 
+  .clk (clk), 
+  .rst_n (rst_n)
 );
 
 endmodule
 
-module pid_controller(setpoint, feedback, clk, rst_n);
+module pid_controller(
+  input wire [7:0] setpoint,
+  input wire [7:0] feedback,
+  clk,
+  rst_n
+);
 
-input [7:0] setpoint;
-input [7:0] feedback;
-input clk, rst_n;
 output reg [7:0] control_signal;
 
 // Hardcoded PID coefficients
