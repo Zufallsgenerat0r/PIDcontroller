@@ -47,14 +47,15 @@ parameter reg [7:0] Kd = 8'h01; // Example derivative gain
 // Internal signals
 reg [7:0] error = 8'h00;
 reg [7:0] prev_error = 8'h00;
-reg [7:0] integral = 8'h00;
-reg [7:0] derivative = 8'h00;
+reg [15:0] integral = 16'h0000;
+reg [15:0] derivative = 16'h0000;
+reg [15:0] pid_output = 16'h0000;
 
 always @(posedge clk or negedge rst_n) begin
   if (~rst_n) begin
     prev_error <= 8'h00;
-    integral <= 8'h00;
-    derivative <= 8'h00;
+    integral <= 16'h0000;
+    derivative <= 16'h0000;
     control_signal <= 8'h00;
   end
   else begin
@@ -62,10 +63,9 @@ always @(posedge clk or negedge rst_n) begin
     error = (setpoint - feedback);
     integral <= integral + (Ki * error);
     derivative <= Kd * (error - prev_error);
-    reg [15:0] pid_output;
     pid_output = (Kp * error) + integral + derivative;
     // Calculate control signal
-    control_signal = pid_output[15:0];
+    control_signal <= pid_output[15:8];
     prev_error <= error; // Update previous error term to feed it for derrivative term.
   end
 end
