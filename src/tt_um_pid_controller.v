@@ -32,34 +32,33 @@ input [7:0] feedback;
 input clk, rst_n;
 output reg [7:0] control_signal;
 
-    // Hardcoded PID coefficients
-    parameter Kp = 8'h10; // Example proportional gain
-    parameter Ki = 8'h02; // Example integral gain
-    parameter Kd = 8'h01; // Example derivative gain
+// Hardcoded PID coefficients
+parameter Kp = 8'h10; // Example proportional gain
+parameter Ki = 8'h02; // Example integral gain
+parameter Kd = 8'h01; // Example derivative gain
 
-    // Internal signals
-    reg [8:0] prev_error = 8'h00;
-    reg [8:0] integral = 8'h00;
-    reg [8:0] derivative = 8'h00;
-    
-    always @(posedge clk or negedge rst_n) begin
-    
-        if (~rst_n) begin
-            prev_error <= 8'h00;
-            integral <= 8'h00;
-            derivative <= 8'h00;
-            outputs <= 8'h00;
-        end 
-        else begin  
-            // PID Calculation
-            error = (setpoint - feedback);
-            integral <= integral + (Ki * error);
-            derivative <= Kd * (error - prev_error);
-            reg [15:0] pid_output;
-            pid_output = (Kp * error) + integral + derivative;
-            // Calculate control signal
-            control_signal = pid_output[15:0];
-            prev_error <= error; // Update previous error term to feed it for derrivative term.
-        end
-    end
+// Internal signals
+reg [8:0] prev_error = 8'h00;
+reg [8:0] integral = 8'h00;
+reg [8:0] derivative = 8'h00;
+
+always @(posedge clk or negedge rst_n) begin
+  if (~rst_n) begin
+    prev_error <= 8'h00;
+    integral <= 8'h00;
+    derivative <= 8'h00;
+    outputs <= 8'h00;
+  end 
+  else begin  
+    // PID Calculation
+    error = (setpoint - feedback);
+    integral <= integral + (Ki * error);
+    derivative <= Kd * (error - prev_error);
+    reg [15:0] pid_output;
+    pid_output = (Kp * error) + integral + derivative;
+    // Calculate control signal
+    control_signal = pid_output[15:0];
+    prev_error <= error; // Update previous error term to feed it for derrivative term.
+  end
+end
 endmodule
