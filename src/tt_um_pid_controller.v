@@ -33,14 +33,14 @@ input clk, rst_n;
 output reg [7:0] control_signal;
 
 // Hardcoded PID coefficients
-parameter Kp = 8'h10; // Example proportional gain
-parameter Ki = 8'h02; // Example integral gain
-parameter Kd = 8'h01; // Example derivative gain
+parameter reg [7:0] Kp = 8'h10; // Example proportional gain
+parameter reg [7:0] Ki = 8'h02; // Example integral gain
+parameter reg [7:0] Kd = 8'h01; // Example derivative gain
 
 // Internal signals
-reg [8:0] prev_error = 8'h00;
-reg [8:0] integral = 8'h00;
-reg [8:0] derivative = 8'h00;
+reg [7:0] prev_error = 8'h00;
+reg [7:0] integral = 8'h00;
+reg [7:0] derivative = 8'h00;
 
 always @(posedge clk or negedge rst_n) begin
   if (~rst_n) begin
@@ -48,8 +48,8 @@ always @(posedge clk or negedge rst_n) begin
     integral <= 8'h00;
     derivative <= 8'h00;
     outputs <= 8'h00;
-  end 
-  else begin  
+  end
+  else begin
     // PID Calculation
     error = (setpoint - feedback);
     integral <= integral + (Ki * error);
