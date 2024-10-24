@@ -33,8 +33,9 @@ endmodule
 module pid_controller(
   input wire [7:0] setpoint,
   input wire [7:0] feedback,
-  clk,
-  rst_n
+  input wire clk,
+  input wire rst_n,
+  output wire control_signal
 );
 
 output reg [7:0] control_signal;
