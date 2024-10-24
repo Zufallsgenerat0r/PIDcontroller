@@ -58,8 +58,8 @@ output reg [7:0] control_signal;
             reg [15:0] pid_output;
             pid_output = (Kp * error) + integral + derivative;
             // Calculate control signal
-            control_signal = pid_output[15:0]
-            prev_error <= error;// Update previous error term to feed it for derrivative term.
+            control_signal = pid_output[15:0];
+            prev_error <= error; // Update previous error term to feed it for derrivative term.
         end
     end
 endmodule
