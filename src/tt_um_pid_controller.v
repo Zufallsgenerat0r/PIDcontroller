@@ -26,7 +26,7 @@ pid_controller pid(
   .feedback (uio_in[7:0]), 
   .clk (clk), 
   .rst_n (rst_n),
-  .control_signal (uo_out[7:0])
+  .control_out (uo_out[7:0])
 );
 
 endmodule
