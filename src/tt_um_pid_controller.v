@@ -54,9 +54,11 @@ module pid_controller(
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             // Reset all terms
-            prev_error <= 8'h00;
-            integral <= 16'h0000;
-            control_signal <= 8'h00;
+            prev_error = 8'h00;
+            integral = 16'h0000;
+            derivative = 16'h0000;
+            pid_output = 16'h0000;
+            control_signal = 8'h00;
         end else begin
             // Calculate error
             error = setpoint - feedback;
