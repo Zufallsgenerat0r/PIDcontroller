@@ -26,7 +26,7 @@ pid_controller pid(
   .feedback (uio_in[7:0]), 
   .clk (clk), 
   .rst_n (rst_n),
-  .control_out (uo_out[7:0])
+  .control_signal (uo_out[7:0])
 );
 
 endmodule
@@ -34,105 +34,58 @@ endmodule
 module pid_controller(
     input wire clk,
     input wire rst_n,
-    input wire [7:0] setpoint,     // Desired value
-    input wire [7:0] feedback,  // Measured value
-    output reg [7:0] control_out   // Control signal
+    input wire [7:0] setpoint,
+    input wire [7:0] feedback,
+    output reg [7:0] control_signal
 );
 
-    // Parameters for PID constants (these can be tuned as needed)
-    parameter Kp = 8'd2;   // Proportional gain
-    parameter Ki = 8'd1;   // Integral gain
-    parameter Kd = 8'd1;   // Derivative gain
+    // Hardcoded PID coefficients
+    parameter reg [7:0] Kp = 8'h02; // Example proportional gain
+    parameter reg [7:0] Ki = 8'h04; // Example integral gain
+    parameter reg [7:0] Kd = 8'h01; // Example derivative gain
 
     // Internal signals
-    reg signed [15:0] error;
-    reg signed [15:0] prev_error;
-    reg signed [23:0] integral;
-    reg signed [15:0] derivative;
-    reg signed [15:0] pid_output;
-
-    // State machine states
-    typedef enum reg [2:0] {
-        RESET_STATE,
-        CALC_ERROR,
-        CALC_TERMS,
-        UPDATE_OUTPUT,
-        UPDATE_PREV
-    } state_t;
-
-    state_t current_state, next_state;
+    reg signed [8:0] error;
+    reg signed [15:0] integral = 16'h0000;
+    reg signed [15:0] derivative = 16'h0000;
+    reg signed [15:0] pid_output = 16'h0000;
+    reg signed [7:0] prev_error = 8'h00;
 
     always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) begin
-            // Reset all internal states
-            current_state <= RESET_STATE;
-            error <= 16'd0;
-            prev_error <= 16'd0;
-            integral <= 24'd0;
-            derivative <= 16'd0;
-            pid_output <= 16'd0;
-            control_out <= 8'd0;
+        if (~rst_n) begin
+            // Reset all terms
+            prev_error <= 8'h00;
+            integral <= 16'h0000;
+            control_signal <= 8'h00;
         end else begin
-            // State transition
-            current_state <= next_state;
+            // Calculate error
+            error = setpoint - feedback;
 
-            case (current_state)
-                RESET_STATE: begin
-                    // Reset internal signals
-                    error <= 16'd0;
-                    prev_error <= 16'd0;
-                    integral <= 24'd0;
-                    derivative <= 16'd0;
-                    pid_output <= 16'd0;
-                    control_out <= 8'd0;
-                end
-                CALC_ERROR: begin
-                    // Calculate error
-                    error <= setpoint - feedback;
-                end
-                CALC_TERMS: begin
-                    // Calculate Proportional term
-                    integral <= integral + (Ki * error);
-                    derivative <= error - prev_error;
-                end
-                UPDATE_OUTPUT: begin
-                    reg signed [15:0] p_term;
-                    reg signed [15:0] d_term;
-                    p_term = Kp * error;
-                    d_term = Kd * derivative;
+            // Proportional term
+            pid_output = Kp * error;
 
-                    // PID output calculation
-                    pid_output <= p_term + (integral >>> 8) + d_term;
+            // Integral term with windup prevention
+            integral = integral + (Ki * error);
+            if (integral > 16'h7FFF) integral = 16'h7FFF; // Positive saturation
+            else if (integral < -16'h8000) integral = -16'h8000; // Negative saturation
+            pid_output = pid_output + integral;
 
-                    // Clamp output to 8-bit range (0 to 255)
-                    if (pid_output > 255) begin
-                        control_out <= 8'd255;
-                    end else if (pid_output < 0) begin
-                        control_out <= 8'd0;
-                    end else begin
-                        control_out <= pid_output[7:0];
-                    end
-                end
-                UPDATE_PREV: begin
-                    // Store current error as previous error for next cycle
-                    prev_error <= error;
-                end
-            endcase
+            // Derivative term
+            derivative = Kd * (error - prev_error);
+            pid_output = pid_output + derivative;
+
+            // Update previous error for the next derivative calculation
+            prev_error = error;
+
+            // Clamping the output to fit in 8 bits
+            if (pid_output < 8'h00) begin
+                control_signal <= 8'h00;
+            end else if (pid_output > 8'hFF) begin
+                control_signal <= 8'hFF;
+            end else begin
+                control_signal <= pid_output[7:0];
+            end
         end
-    end
-
-    always @(*) begin
-        // Default next state
-        next_state = current_state;
-
-        case (current_state)
-            RESET_STATE: next_state = CALC_ERROR;
-            CALC_ERROR: next_state = CALC_TERMS;
-            CALC_TERMS: next_state = UPDATE_OUTPUT;
-            UPDATE_OUTPUT: next_state = UPDATE_PREV;
-            UPDATE_PREV: next_state = CALC_ERROR;
-            default: next_state = RESET_STATE;
-        endcase
     end
 
 endmodule
