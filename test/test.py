@@ -39,13 +39,13 @@ async def test_project(dut):
         await RisingEdge(dut.clk)
 
         # Log the output values for debugging
-        dut._log.info(f"Cycle {i}: Setpoint = {dut.ui_in.value}, Feedback = {dut.uio_in.value}, Control Out = {dut.uo_out.value}")
+        dut._log.info(f"Cycle {i}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
 
     # Set new setpoint and continue
     dut.ui_in.value = 200
     for i in range(100):
         await RisingEdge(dut.clk)
-        dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value}, Feedback = {dut.uio_in.value}, Control Out = {dut.uo_out.value}")
+        dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
 
     # Add assertions to verify the behavior of the PID controller
     assert int(dut.uo_out.value) >= 0, "Control output is out of range!"
