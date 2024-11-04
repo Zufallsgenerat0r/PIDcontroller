@@ -40,7 +40,7 @@ module pid_controller(
 );
 
     // Hardcoded PID coefficients
-    parameter reg [7:0] Kp = 8'h02; // Example proportional gain
+    parameter reg [7:0] Kp = 8'h01; // Example proportional gain
     parameter reg [7:0] Ki = 8'h00; // Example integral gain
     parameter reg [7:0] Kd = 8'h00; // Example derivative gain
 
