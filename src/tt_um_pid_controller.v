@@ -45,7 +45,7 @@ module pid_controller(
     parameter reg [7:0] Kd = 8'h00; // Example derivative gain
 
     // Internal signals
-    reg signed [8:0] error;
+    reg signed [7:0] error;
     reg signed [15:0] integral = 16'h0000;
     reg signed [15:0] derivative = 16'h0000;
     reg signed [15:0] pid_output = 16'h0000;
