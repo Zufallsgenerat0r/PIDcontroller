@@ -48,5 +48,5 @@ async def test_project(dut):
         dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value}, Feedback = {dut.uio_in.value}, Control Out = {dut.uo_out.value}")
 
     # Add assertions to verify the behavior of the PID controller
-    assert dut.uo_out.value >= 0, "Control output is out of range!"
-    assert dut.uo_out.value <= 255, "Control output is out of range!"
+    assert int(dut.uo_out.value) >= 0, "Control output is out of range!"
+    assert int(dut.uo_out.value) <= 255, "Control output is out of range!"
