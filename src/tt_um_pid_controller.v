@@ -81,11 +81,11 @@ module pid_controller(
 
             // Clamping the output to fit in 8 bits
             if (pid_output < 8'h00) begin
-                control_signal <= 8'h00;
+                control_signal = 8'h00;
             end else if (pid_output > 8'hFF) begin
-                control_signal <= 8'hFF;
+                control_signal = 8'hFF;
             end else begin
-                control_signal <= pid_output[7:0];
+                control_signal = pid_output[7:0];
             end
         end
     end
