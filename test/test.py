@@ -41,12 +41,45 @@ async def test_project(dut):
         # Log the output values for debugging
         dut._log.info(f"Cycle {i}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
 
-    # Set new setpoint and continue
+    # Controlled test scenario
+    dut.ui_in.value = 150
+    for i in range(50):
+        dut.uio_in.value = max(0, dut.uio_in.value.integer - 1)  # Simulate system reaching setpoint
+        await RisingEdge(dut.clk)
+        dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+
+    # Step response test
     dut.ui_in.value = 200
     for i in range(100):
         await RisingEdge(dut.clk)
-        dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+        dut._log.info(f"Step Response Cycle {i + 150}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
 
     # Add assertions to verify the behavior of the PID controller
     assert int(dut.uo_out.value) >= 0, "Control output is out of range!"
     assert int(dut.uo_out.value) <= 255, "Control output is out of range!"
+
+    # Edge case testing
+    dut.ui_in.value = 0
+    dut.uio_in.value = 0
+    for i in range(20):
+        await RisingEdge(dut.clk)
+        dut._log.info(f"Edge Case Cycle {i + 250}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+
+    dut.ui_in.value = 255
+    dut.uio_in.value = 255
+    for i in range(20):
+        await RisingEdge(dut.clk)
+        dut._log.info(f"Edge Case Cycle {i + 270}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+
+    # Sweep test for PID gains (parameterized testing)
+    for kp in range(1, 4):
+        for ki in range(1, 4):
+            for kd in range(1, 4):
+                dut._log.info(f"Testing with Kp={kp}, Ki={ki}, Kd={kd}")
+                dut.ui_in.value = 128
+                dut.uio_in.value = 100
+                for i in range(50):
+                    await RisingEdge(dut.clk)
+                    dut._log.info(f"Sweep Test Cycle {i + 300}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+                assert int(dut.uo_out.value) >= 0, "Control output is out of range during sweep test!"
+                assert int(dut.uo_out.value) <= 255, "Control output is out of range during sweep test!"
