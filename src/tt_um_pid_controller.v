@@ -91,7 +91,7 @@ module pid_controller(
                 end
                 CALC_ERROR: begin
                     // Calculate error
-                    error <= setpoint - feedback;
+                    error <= setpoint_extended - feedback_extended;
                 end
                 CALC_TERMS: begin
                     // Calculate Proportional term
