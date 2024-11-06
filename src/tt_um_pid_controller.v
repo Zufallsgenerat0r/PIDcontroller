@@ -120,13 +120,14 @@ module pid_controller(
                     // Store current error as previous error for next cycle
                     prev_error <= error;
                 end
-                default:
+                default: begin
                     error <= 16'd0;
                     prev_error <= 16'd0;
                     integral <= 16'd0;
                     derivative <= 16'd0;
                     pid_output <= 16'd0;
                     control_out <= 8'd0;
+                end
             endcase
         end
     end
