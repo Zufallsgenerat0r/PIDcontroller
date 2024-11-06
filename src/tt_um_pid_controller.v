@@ -16,10 +16,12 @@ module tt_um_pid_controller (
     input  wire       rst_n     // reset_n - low to reset
 );
 
-assign uio_oe = 8'h00; //assign bidrectional as outputs.
+assign uio_oe = 8'h00; //assign bidrectional as inputs.
+
+assign uio_out = 0;
 
  // List all unused inputs to prevent warnings
-wire _unused_ok = &{ena, uio_out[7:0]};
+wire _unused = &{ena, uio_out[7:0]};
 
 pid_controller pid(
   .setpoint (ui_in[7:0]), 
