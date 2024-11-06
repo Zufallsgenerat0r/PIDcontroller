@@ -47,7 +47,7 @@ module pid_controller(
     // Internal signals
     reg signed [15:0] error;
     reg signed [15:0] prev_error;
-    reg signed [23:0] integral;
+    reg signed [15:0] integral;
     reg signed [15:0] derivative;
     reg signed [15:0] pid_output;
 
@@ -68,7 +68,7 @@ module pid_controller(
             current_state <= RESET_STATE;
             error <= 16'd0;
             prev_error <= 16'd0;
-            integral <= 24'd0;
+            integral <= 16'd0;
             derivative <= 16'd0;
             pid_output <= 16'd0;
             control_out <= 8'd0;
@@ -81,7 +81,7 @@ module pid_controller(
                     // Reset internal signals
                     error <= 16'd0;
                     prev_error <= 16'd0;
-                    integral <= 24'd0;
+                    integral <= 16'd0;
                     derivative <= 16'd0;
                     pid_output <= 16'd0;
                     control_out <= 8'd0;
@@ -117,6 +117,8 @@ module pid_controller(
                     // Store current error as previous error for next cycle
                     prev_error <= error;
                 end
+                default:
+                    next_state = RESET_STATE;
             endcase
         end
     end
