@@ -51,6 +51,7 @@ module pid_controller(
     reg signed [15:0] derivative;
     reg signed [15:0] pid_output;
 
+
     // State machine states
     typedef enum reg [2:0] {
         RESET_STATE,
@@ -118,7 +119,7 @@ module pid_controller(
                     prev_error <= error;
                 end
                 default:
-                    next_state = RESET_STATE;
+                    next_state <= RESET_STATE;
             endcase
         end
     end
