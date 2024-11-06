@@ -51,6 +51,8 @@ module pid_controller(
     reg signed [15:0] derivative;
     reg signed [15:0] pid_output;
 
+    wire [15:0] setpoint_extended = {8'b0, setpoint};
+    wire [15:0] feedback_extended = {8'b0, feedback};
 
     // State machine states
     typedef enum reg [2:0] {
