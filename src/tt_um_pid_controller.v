@@ -121,7 +121,12 @@ module pid_controller(
                     prev_error <= error;
                 end
                 default:
-                    next_state <= RESET_STATE;
+                    error <= 16'd0;
+                    prev_error <= 16'd0;
+                    integral <= 16'd0;
+                    derivative <= 16'd0;
+                    pid_output <= 16'd0;
+                    control_out <= 8'd0;
             endcase
         end
     end
