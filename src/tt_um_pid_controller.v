@@ -43,8 +43,8 @@ module pid_controller(
 
     // Parameters for PID constants (these can be tuned as needed)
     parameter Kp = 8'd2;   // Proportional gain
-    parameter Ki = 8'd0;   // Integral gain
-    parameter Kd = 8'd0;   // Derivative gain
+    parameter Ki = 8'd1;   // Integral gain
+    parameter Kd = 8'd1;   // Derivative gain
 
     // Internal signals
     reg signed [15:0] error;
