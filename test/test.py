@@ -6,6 +6,23 @@ from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles, RisingEdge
 import random
 
+import csv
+from datetime import datetime
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# Specify the CSV file to write to
+csv_file = f'observation_data_{timestamp}.csv'
+
+# Check if this is the first time running the script or if the file needs to be initialized
+try:
+    with open(csv_file, 'x', newline='') as f:
+        writer = csv.writer(f)
+        # Write the header to the CSV file
+        writer.writerow(['Cycle', 'Setpoint', 'Feedback', 'Control Signal', 'Error'])
+except FileExistsError:
+    pass  # File already exists, no need to write the header again
+
 @cocotb.test()
 async def test_pid_controller(dut):
     dut._log.info("Start")
@@ -34,7 +51,7 @@ async def test_pid_controller(dut):
 
         # Adjust feedback value to simulate approach toward setpoint
         if pid_output > 0:
-            feedback += min(pid_output, random.randint(0, 5))  # Increase
+            feedback += min(pid_output, random.randint(0, 10))  # Increase
         elif pid_output <= 0:
             feedback -= 2  # Slow decrease
 
@@ -48,6 +65,10 @@ async def test_pid_controller(dut):
         # Print for observation
         dut._log.info(f"Cycle {i}: Setpoint={setpoint}, Feedback={feedback}, "
                       f"Control Signal={control_signal}, Error={error}")
+        
+        with open(csv_file, 'a', newline='') as f:
+            writer = csv.writer(f)
+            writer.writerow([i, setpoint, feedback, control_signal, error])
 
         # Assertion to check if the feedback stabilizes around setpoint
         if i > 340:  # Give some settling time

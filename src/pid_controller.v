@@ -9,12 +9,10 @@ module pid_controller(
 );
 
     // Hardcoded PID coefficients
-    parameter [3:0] Kp = 4'd2; // Example proportional gain
-    parameter [3:0] Ki = 4'd1; // Example integral gain
-    parameter [3:0] Kd = 4'd1; // Example derivative gain
+    parameter [3:0] Kp = 4'd3; // Proportional gain
+    parameter [3:0] Kd = 4'd3; // Derivative gain
 
     wire signed [8:0] Kp_ext = { {5{Kd[3]}}, Kp };
-    wire signed [8:0] Ki_ext = { {5{Kd[3]}}, Ki };
     wire signed [8:0] Kd_ext = { {5{Kd[3]}}, Kd };
 
 
@@ -30,8 +28,8 @@ module pid_controller(
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             // Reset all terms
-            prev_error <= 0;
-            integral <= 0;
+            prev_error = 0;
+            integral = 0;
             control_out <= 0;
         end else begin
             // Calculate error
@@ -41,7 +39,7 @@ module pid_controller(
             pid_output = Kp_ext * error;
 
             // Integral term with windup prevention
-            integral = integral + (error / 4);
+            integral = integral + (error / 5);
             // if (integral > 16'h7FFF) integral = 16'h7FFF; // Positive saturation
             // else if (integral < -16'h8000) integral = -16'h8000; // Negative saturation
             pid_output = pid_output + integral;
