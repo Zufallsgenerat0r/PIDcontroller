@@ -36,7 +36,7 @@ async def test_pid_controller(dut):
         # Adjust feedback value to simulate approach toward setpoint
         if 0 < pid_output:
             feedback += min(pid_output, 2)  # Slow increase
-        elif 0 > pid_output:
+        elif 0 >= pid_output:
             feedback -= 2  # Slow decrease
 
         # Apply the updated feedback to DUT
