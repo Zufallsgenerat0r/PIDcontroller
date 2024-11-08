@@ -9,38 +9,46 @@ module pid_controller(
 );
 
     // Hardcoded PID coefficients
-    parameter [7:0] Kp = 8'h02; // Example proportional gain
-    parameter [7:0] Ki = 8'h01; // Example integral gain
-    parameter [7:0] Kd = 8'h00; // Example derivative gain
+    parameter [3:0] Kp = 4'd2; // Example proportional gain
+    parameter [3:0] Ki = 4'd1; // Example integral gain
+    parameter [3:0] Kd = 4'd1; // Example derivative gain
+
+    wire signed [8:0] Kp_ext = { {5{Kd[3]}}, Kp };
+    wire signed [8:0] Ki_ext = { {5{Kd[3]}}, Ki };
+    wire signed [8:0] Kd_ext = { {5{Kd[3]}}, Kd };
+
 
     // Internal signals
-    reg signed [8:0] error;
+    reg signed [8:0] error = 0;
+    reg signed [8:0] prev_error = 0;
+    reg signed [8:0] diff_error = 0;
+
     reg signed [15:0] integral = 16'h0000;
     reg signed [15:0] derivative = 16'h0000;
     reg signed [15:0] pid_output = 16'h0000;
-    reg signed [7:0] prev_error = 8'h00;
 
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             // Reset all terms
-            prev_error <= 8'h00;
-            integral <= 16'h0000;
-            control_out <= 8'h00;
+            prev_error <= 0;
+            integral <= 0;
+            control_out <= 0;
         end else begin
             // Calculate error
             error = setpoint - feedback;
 
             // Proportional term
-            pid_output = Kp * error;
+            pid_output = Kp_ext * error;
 
             // Integral term with windup prevention
-            // integral = integral + (Ki * error);
+            integral = integral + (error / 4);
             // if (integral > 16'h7FFF) integral = 16'h7FFF; // Positive saturation
             // else if (integral < -16'h8000) integral = -16'h8000; // Negative saturation
-            // pid_output = pid_output + integral;
+            pid_output = pid_output + integral;
 
             // Derivative term
-            derivative = Kd * (error - prev_error);
+            diff_error = error - prev_error;
+            derivative = Kd_ext  * diff_error;
             pid_output = pid_output + derivative;
 
             // Update previous error for the next derivative calculation
@@ -49,8 +57,10 @@ module pid_controller(
             // Clamping the output to fit in 8 bits
             if (pid_output < 8'h00) begin
                 control_out <= 8'h00;
-            end else if (pid_output > 8'hFF) begin
+            end else if ((pid_output >= 8'hFF) && (pid_output[15] == 1)) begin
                 control_out <= 8'h00;
+            end else if ((pid_output >= 8'hFF) && (pid_output[15] == 0)) begin
+                control_out <= 8'hFF;
             end else begin
                 control_out <= pid_output[7:0];
             end
