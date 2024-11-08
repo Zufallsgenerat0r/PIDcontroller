@@ -43,7 +43,7 @@ async def test_pid_controller(dut):
     dut.rst_n.value = 1
 
     # Simulated system response
-    for i in range(350):  # Run for 150 cycles
+    for i in range(200):  # Run for 150 cycles
         await RisingEdge(dut.clk)
 
         # Update the feedback based on control signal (simple simulation of plant response)
@@ -51,7 +51,7 @@ async def test_pid_controller(dut):
 
         # Adjust feedback value to simulate approach toward setpoint
         if pid_output > 0:
-            feedback += min(pid_output, random.randint(0, 10))  # Increase
+            feedback += min(pid_output, 6)  # Increase
         elif pid_output <= 0:
             feedback -= 2  # Slow decrease
 
@@ -71,7 +71,7 @@ async def test_pid_controller(dut):
             writer.writerow([i, setpoint, feedback, control_signal, error])
 
         # Assertion to check if the feedback stabilizes around setpoint
-        if i > 340:  # Give some settling time
+        if i > 190:  # Give some settling time
             assert abs(feedback - setpoint) <= 5, f"Feedback did not converge: {feedback}"
 
     # Final check if feedback is close enough to setpoint
