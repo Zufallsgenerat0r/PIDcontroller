@@ -8,45 +8,51 @@ import random
 
 
 @cocotb.test()
-async def test_project(dut):
+async def test_pid_controller(dut):
     dut._log.info("Start")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, units="us")
+    # 10ns period = 100MHz clock
+    clock = Clock(dut.clk, 10, units="ns")
     cocotb.start_soon(clock.start())
 
-    # Reset
-    dut._log.info("Reset")
-    dut.ena.value = 1
-    dut.ui_in.value = 0
-    dut.uio_in.value = 0
+    # Initialize values
+    setpoint = 128
+    feedback = 75
+    dut.setpoint.value = setpoint
+    dut.feedback.value = feedback
     dut.rst_n.value = 0
-    await ClockCycles(dut.clk, 10)
+
+    # Reset the DUT
+    await RisingEdge(dut.clk)
     dut.rst_n.value = 1
 
-    dut._log.info("Test project behavior")
-
-    # Set initial values for setpoint and process_var
-    dut.ui_in.value = 128   # Set a mid-range setpoint (desired value)
-    dut.uio_in.value = 100 # Set an initial process variable (measured value)
-
-    await RisingEdge(dut.clk)
-
-    # Run the PID controller for a few clock cycles
-    for i in range(100):
-        # Randomly vary the process variable to simulate system changes
-        dut.uio_in.value = random.randint(0, 255)
+    # Simulated system response
+    for i in range(250):  # Run for 100 cycles
         await RisingEdge(dut.clk)
 
-        # Log the output values for debugging
-        dut._log.info(f"Cycle {i}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+        # Update the feedback based on control signal (simple simulation of plant response)
+        pid_output = dut.control_out.value.integer
 
-    # Set new setpoint and continue
-    dut.ui_in.value = 200
-    for i in range(100):
-        await RisingEdge(dut.clk)
-        dut._log.info(f"Cycle {i + 100}: Setpoint = {dut.ui_in.value.integer}, Feedback = {dut.uio_in.value.integer}, Control Out = {dut.uo_out.value.integer}")
+        # Adjust feedback value to simulate approach toward setpoint
+        if 0 < pid_output:
+            feedback += min(pid_output, 2)  # Slow increase
+        elif 0 > pid_output:
+            feedback -= 2  # Slow decrease
 
-    # Add assertions to verify the behavior of the PID controller
-    assert int(dut.uo_out.value) >= 0, "Control output is out of range!"
-    assert int(dut.uo_out.value) <= 255, "Control output is out of range!"
+        # Apply the updated feedback to DUT
+        dut.feedback.value = feedback
+
+        # Monitor the output and log values
+        control_signal = dut.control_out.value.integer
+        error = setpoint - feedback
+
+        # Print for observation
+        dut._log.info(f"Cycle {i}: Setpoint={setpoint}, Feedback={feedback}, "
+                      f"Control Signal={control_signal}, Error={error}")
+
+        # Assertion to check if the feedback stabilizes around setpoint
+        if i > 240:  # Give some settling time
+            assert abs(feedback - setpoint) <= 5, f"Feedback did not converge: {feedback}"
+
+    # Final check if feedback is close enough to setpoint
+    assert abs(feedback - setpoint) <= 3, "PID controller did not reach setpoint adequately"
