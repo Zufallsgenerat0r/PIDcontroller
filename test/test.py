@@ -34,8 +34,6 @@ async def test_pid_controller(dut):
     # Initialize values
     setpoint = 180
     feedback = 90
-    dut.setpoint.value = setpoint
-    dut.feedback.value = feedback
     dut.rst_n.value = 0
 
     # Reset the DUT
@@ -47,11 +45,25 @@ async def test_pid_controller(dut):
     Ki = 2 
     Kd = 12 # Derivative
 
-    dut.setpoint.value = Kp    
+    # Load Kp
+    dut.setpoint.value = Kp
     await RisingEdge(dut.clk)
-    dut.setpoint.value = Ki    
+
+    # Load Ki
+    dut.setpoint.value = Ki
     await RisingEdge(dut.clk)
+
+    # Load Kd
     dut.setpoint.value = Kd
+    await RisingEdge(dut.clk)
+
+    # Now set setpoint back to desired value
+    dut.setpoint.value = setpoint
+    dut.feedback.value = feedback
+    await RisingEdge(dut.clk)  # Ensure the setpoint is registered
+
+    # Wait for the PID controller to reach the OPERATING state
+    await RisingEdge(dut.clk)  # Extra clock cycles if necessary
     await RisingEdge(dut.clk)
 
 
