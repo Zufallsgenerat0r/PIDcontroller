@@ -32,8 +32,8 @@ async def test_pid_controller(dut):
     cocotb.start_soon(clock.start())
 
     # Initialize values
-    setpoint = 100
-    feedback = 0
+    setpoint = 180
+    feedback = 90
     dut.setpoint.value = setpoint
     dut.feedback.value = feedback
     dut.rst_n.value = 0
@@ -41,6 +41,19 @@ async def test_pid_controller(dut):
     # Reset the DUT
     await RisingEdge(dut.clk)
     dut.rst_n.value = 1
+   
+    # Initialize coefficients
+    Kp = 12 # Proportional
+    Ki = 2 
+    Kd = 12 # Derivative
+
+    dut.setpoint.value = Kp    
+    await RisingEdge(dut.clk)
+    dut.setpoint.value = Ki    
+    await RisingEdge(dut.clk)
+    dut.setpoint.value = Kd
+    await RisingEdge(dut.clk)
+
 
     # Simulated system response
     for i in range(200):  # Run for 150 cycles
@@ -51,11 +64,16 @@ async def test_pid_controller(dut):
 
         # Adjust feedback value to simulate approach toward setpoint
         if pid_output > 0:
-            feedback += min(pid_output, 6)  # Increase
+            feedback += min(pid_output, 5)  # Increase
         elif pid_output <= 0:
             feedback -= 2  # Slow decrease
 
         # Apply the updated feedback to DUT
+        if feedback > 255:
+            feedback = 255
+        if feedback < 0:
+            feedback = 0
+            
         dut.feedback.value = feedback
 
         # Monitor the output and log values
