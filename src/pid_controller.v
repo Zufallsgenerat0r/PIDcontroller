@@ -61,6 +61,7 @@ module pid_controller(
             Kp <= 0;
             Ki <= 0;
             Kd <= 0;
+            proportional = 0;
             integral = 0;
             derivative = 0;
             pid_output = 0;
@@ -114,13 +115,15 @@ module pid_controller(
             end
             default: begin
                 // Reset logic
-                error <= 0;
-                prev_error <= 0;
+                error = 0;
+                prev_error = 0;
                 Kp <= 0;
                 Ki <= 0;
                 Kd <= 0;
-                integral <= 0;
-                derivative <= 0;
+                proportional = 0;
+                integral = 0;
+                derivative = 0;
+                pid_output = 0;
                 control_out <= 0;
                 state <= FETCHING_KP;
             end
