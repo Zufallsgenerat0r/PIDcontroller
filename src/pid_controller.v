@@ -56,14 +56,14 @@ module pid_controller(
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             // Reset all terms
-            error <= 0;
-            prev_error <= 0;
+            error = 0;
+            prev_error = 0;
             Kp <= 0;
             Ki <= 0;
             Kd <= 0;
-            integral <= 0;
-            derivative <= 0;
-            pid_output <= 0;
+            integral = 0;
+            derivative = 0;
+            pid_output = 0;
             control_out <= 0;
             state <= FETCHING_KP;
         end else begin
