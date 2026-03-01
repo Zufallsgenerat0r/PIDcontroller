@@ -17,13 +17,15 @@ module pid_controller(
     reg [8:0] Ki;
     reg [8:0] Kd;
 
-    // Internal signals
-    reg signed [8:0] error;
+    // Registered signals
     reg signed [8:0] prev_error;
-    reg signed [8:0] diff_error;
-
-    reg signed [15:0] proportional;
     reg signed [15:0] integral;
+
+    // Combinational signals
+    reg signed [8:0] error;
+    reg signed [8:0] diff_error;
+    reg signed [15:0] proportional;
+    reg signed [15:0] integral_next;
     reg signed [15:0] derivative;
     reg signed [15:0] pid_output;
 
@@ -53,18 +55,24 @@ module pid_controller(
         end
     endfunction
 
+    // Combinational logic — compute PID terms from current inputs and state
+    always @(*) begin
+        error = setpoint - feedback;
+        proportional = ($signed(Kp) * error) / $signed(50);
+        integral_next = integral + (error * $signed(Ki)) / $signed(50);
+        diff_error = error - prev_error;
+        derivative = ($signed(Kd) * diff_error) / $signed(50);
+        pid_output = proportional + integral_next + derivative;
+    end
+
+    // Sequential logic — all non-blocking assignments
     always @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
-            // Reset all terms
-            error = 0;
-            prev_error = 0;
+            prev_error <= 0;
             Kp <= 0;
             Ki <= 0;
             Kd <= 0;
-            proportional = 0;
-            integral = 0;
-            derivative = 0;
-            pid_output = 0;
+            integral <= 0;
             control_out <= 0;
             state <= FETCHING_KP;
         end else begin
@@ -82,25 +90,8 @@ module pid_controller(
                 state <= OPERATING;
             end
             OPERATING: begin
-                // Calculate error
-                error = setpoint - feedback;
-
-                // Proportional term
-                proportional = ($signed(Kp) * error) / $signed(50);
-
-                // Integral term
-                integral = integral + (error * $signed(Ki)) / $signed(50);
-                pid_output = pid_output + integral;
-
-                // Derivative term
-                diff_error = error - prev_error;
-                derivative = ($signed(Kd) * diff_error) / $signed(50);
-
-                // Sum
-                pid_output = proportional + integral + derivative;
-
-                // Update previous error for the next derivative calculation
-                prev_error = error;
+                prev_error <= error;
+                integral <= integral_next;
 
                 // Clamping the output to fit in 8 bits
                 if (pid_output <= 16'h0000) begin
@@ -110,20 +101,15 @@ module pid_controller(
                 end else if ((pid_output >= 16'h00FF) && (pid_output[15] == 0)) begin
                     control_out <= 8'hFF;
                 end else begin
-                    control_out <= pid_output[7:0]; 
+                    control_out <= pid_output[7:0];
                 end
             end
             default: begin
-                // Reset logic
-                error = 0;
-                prev_error = 0;
+                prev_error <= 0;
                 Kp <= 0;
                 Ki <= 0;
                 Kd <= 0;
-                proportional = 0;
-                integral = 0;
-                derivative = 0;
-                pid_output = 0;
+                integral <= 0;
                 control_out <= 0;
                 state <= FETCHING_KP;
             end
