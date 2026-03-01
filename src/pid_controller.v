@@ -11,6 +11,9 @@ module pid_controller(
     localparam FETCHING_KD = 2'b10;
     localparam OPERATING   = 2'b11;
 
+    localparam signed [15:0] INTEGRAL_MAX = 16'sd255;
+    localparam signed [15:0] INTEGRAL_MIN = -16'sd255;
+
     reg [1:0] state;
 
     reg [8:0] Kp;
@@ -88,9 +91,12 @@ module pid_controller(
                 // Proportional term
                 proportional = ($signed(Kp) * error) / $signed(50);
 
-                // Integral term
+                // Integral term with anti-windup clamping
                 integral = integral + (error * $signed(Ki)) / $signed(50);
-                pid_output = pid_output + integral;
+                if (integral > INTEGRAL_MAX)
+                    integral = INTEGRAL_MAX;
+                else if (integral < INTEGRAL_MIN)
+                    integral = INTEGRAL_MIN;
 
                 // Derivative term
                 diff_error = error - prev_error;
