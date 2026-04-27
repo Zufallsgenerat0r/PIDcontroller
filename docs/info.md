@@ -1,32 +1,61 @@
-<!---
-
-This file is used to generate your project datasheet. Please fill in the information below and delete any unused
-sections.
-
-You can also include images in this folder and reference them in the markdown. Each image must be less than
-512 kb in size, and the combined size of all images must be less than 1 MB.
--->
-
 ## How it works
 
-The PID controller module works by continuously adjusting its output based on the difference between the desired value (setpoint) and the measured value (feedback). It does this using three components:
+This project implements an 8-bit PID controller. The controller compares a
+desired setpoint against a feedback value, computes the error, and combines
+proportional, integral, and derivative terms into a single control output.
 
-Proportional Term (P): This term corrects the error in proportion to the current difference between the setpoint and the feedback. It applies an immediate response to reduce the error.
+The top-level module is `tt_um_pid_controller`. It uses the Tiny Tapeout pins as
+follows:
 
-Integral Term (I): This term accumulates the past error over time, helping to eliminate any steady-state error that may persist after the proportional correction.
+- `ui_in[7:0]` is the setpoint input during normal operation.
+- `uio_in[7:0]` is the feedback input.
+- `uo_out[7:0]` is the saturated control output.
+- `uio_oe[7:0]` is tied low, so the bidirectional pins are used only as inputs.
 
-Derivative Term (D): This term predicts future error by observing the rate of change of the current error, thus providing a damping effect to reduce overshooting.
+The first three clock cycles after reset load the gain settings from
+`ui_in[3:0]`: Kp first, then Ki, then Kd. Each 4-bit gain code is converted to a
+fixed-point gain value using the table in `pid_controller.v`. After those three
+setup cycles, the module enters its operating state and treats `ui_in[7:0]` as
+the live setpoint.
 
-The controller outputs a signal only in the positive direction. That means that we expect a system that naturally tends towards one point. Regarding a application in heating that means that we are not aiming to cool down the system when overshooting or if the setpoint is higher then our feedback but we just output 0 for control.
+The controller output is unipolar. Negative PID results clamp to `0x00`, values
+above the 8-bit range clamp to `0xff`, and in-range positive values are passed
+to `uo_out[7:0]`. This makes the design suitable for one-direction actuators
+such as a heater or a motor drive where zero means "do not drive harder" rather
+than actively driving in the opposite direction.
 
 ## How to test
 
-Set different values for setpoint and feedback and observe the output in response to it. Change the setpoint to play around.
+Run the cocotb RTL simulation from the `test` directory:
+
+```sh
+make -B
+```
+
+The testbench resets the design, loads Kp, Ki, and Kd, then applies a setpoint
+and feedback value to a simple simulated plant. During the run it checks that
+the feedback converges near the setpoint. It also writes a `tb.vcd` waveform and
+an `observation_data_<timestamp>.csv` file with cycle, setpoint, feedback,
+control signal, and error values.
+
+To inspect the waveform:
+
+```sh
+gtkwave tb.vcd tb.gtkw
+```
+
+For gate-level simulation, first harden the design, copy the generated
+gate-level netlist to `test/gate_level_netlist.v`, and run:
+
+```sh
+make -B GATES=yes
+```
 
 ## External hardware
 
-No specific external hardware is required to test the module in a simulation environment. However, for practical deployment, you may need:
+No external hardware is required for RTL simulation.
 
-Sensor: A sensor to provide the feedback signal, representing the process variable you wish to control.
-
-Actuator: An actuator driven by the control_out signal to affect the process, such as a motor or a heating element.
+For use on a Tiny Tapeout demo board, the project needs external circuitry that
+provides an 8-bit feedback value and accepts the 8-bit control output. A
+practical closed-loop setup would typically include a sensor or ADC feeding the
+feedback pins, plus an actuator driver controlled by `uo_out[7:0]`.

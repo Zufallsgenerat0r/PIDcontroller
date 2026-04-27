@@ -1,12 +1,22 @@
-# Sample testbench for a Tiny Tapeout project
+# Testbench for the PID controller Tiny Tapeout project
 
-This is a sample testbench for a Tiny Tapeout project. It uses [cocotb](https://docs.cocotb.org/en/stable/) to drive the DUT and check the outputs.
-See below to get started or for more information, check the [website](https://tinytapeout.com/hdl/testing/).
+This testbench uses [cocotb](https://docs.cocotb.org/en/stable/) to drive the
+PID controller and check the outputs. For more Tiny Tapeout testing background,
+see the [Tiny Tapeout HDL testing guide](https://tinytapeout.com/hdl/testing/).
 
 ## Setting up
 
-1. Edit [Makefile](Makefile) and modify `PROJECT_SOURCES` to point to your Verilog files.
-2. Edit [tb.v](tb.v) and replace `tt_um_example` with your module name.
+Install the Python requirements, then run the simulation from this directory:
+
+```sh
+pip install -r requirements.txt
+```
+
+The testbench is already configured for `tt_um_pid_controller`. The Makefile
+builds these source files from `../src`:
+
+- `tt_um_pid_controller.v`
+- `pid_controller.v`
 
 ## How to run
 
@@ -16,7 +26,12 @@ To run the RTL simulation:
 make -B
 ```
 
-To run gatelevel simulation, first harden your project and copy `../runs/wokwi/results/final/verilog/gl/{your_module_name}.v` to `gate_level_netlist.v`.
+The test loads Kp, Ki, and Kd during the first three post-reset clock cycles,
+then applies a setpoint and feedback value to a simple simulated plant. It
+passes when the feedback converges near the setpoint.
+
+To run gate-level simulation, first harden the project and copy the generated
+gate-level Verilog netlist to `gate_level_netlist.v`.
 
 Then run:
 
@@ -24,7 +39,15 @@ Then run:
 make -B GATES=yes
 ```
 
-## How to view the VCD file
+## Outputs
+
+The RTL test writes:
+
+- `tb.vcd` - waveform dump for GTKWave
+- `observation_data_<timestamp>.csv` - cycle-by-cycle setpoint, feedback,
+  control signal, and error values
+
+## How to view the waveform
 
 ```sh
 gtkwave tb.vcd tb.gtkw

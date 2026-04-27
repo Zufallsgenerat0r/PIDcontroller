@@ -3,7 +3,7 @@ project:
   title:        "PID Controller"      # Project title
   author:       "Kilian Bender"      # Your name
   discord:      "boysen"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
-  description:  "Hardware implementation of a naive PID Controller"      # One line description of what your project does
+  description:  "8-bit hardware PID controller with configurable gains"      # One line description of what your project does
   language:     "Verilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
   clock_hz:     1_000_000       # Clock frequency in Hz (or 0 if not applicable)
 
@@ -23,34 +23,34 @@ project:
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
 pinout:
   # Inputs
-  ui[0]: "setpoint 0"
-  ui[1]: "setpoint 1"
-  ui[2]: "setpoint 2"
-  ui[3]: "setpoint 3"
-  ui[4]: "setpoint 4"
-  ui[5]: "setpoint 5"
-  ui[6]: "setpoint 6"
-  ui[7]: "setpoint 7"
+  ui[0]: "setpoint/gain bit 0"
+  ui[1]: "setpoint/gain bit 1"
+  ui[2]: "setpoint/gain bit 2"
+  ui[3]: "setpoint/gain bit 3"
+  ui[4]: "setpoint bit 4"
+  ui[5]: "setpoint bit 5"
+  ui[6]: "setpoint bit 6"
+  ui[7]: "setpoint bit 7"
 
   # Outputs
-  uo[0]: control_signal 0"
-  uo[1]: "control_signal 1"
-  uo[2]: "control_signal 2"
-  uo[3]: "control_signal 3"
-  uo[4]: "control_signal 4"
-  uo[5]: "control_signal 5"
-  uo[6]: "control_signal 6"
-  uo[7]: "control_signal 7"
+  uo[0]: "control signal bit 0"
+  uo[1]: "control signal bit 1"
+  uo[2]: "control signal bit 2"
+  uo[3]: "control signal bit 3"
+  uo[4]: "control signal bit 4"
+  uo[5]: "control signal bit 5"
+  uo[6]: "control signal bit 6"
+  uo[7]: "control signal bit 7"
 
   # Bidirectional pins
-  uio[0]: "feedback 0"
-  uio[1]: "feedback 1"
-  uio[2]: "feedback 2"
-  uio[3]: "feedback 3"
-  uio[4]: "feedback 4"
-  uio[5]: "feedback 5"
-  uio[6]: "feedback 6"
-  uio[7]: "feedback 7"
+  uio[0]: "feedback bit 0"
+  uio[1]: "feedback bit 1"
+  uio[2]: "feedback bit 2"
+  uio[3]: "feedback bit 3"
+  uio[4]: "feedback bit 4"
+  uio[5]: "feedback bit 5"
+  uio[6]: "feedback bit 6"
+  uio[7]: "feedback bit 7"
 
 # Do not change!
 yaml_version: 6
